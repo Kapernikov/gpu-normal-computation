@@ -1,0 +1,18 @@
+set(EXE_NAME test_normal_computation)
+
+add_executable(${EXE_NAME}
+    normalComputationTest.cpp
+)
+
+set(DEPENDENCIES
+    normal-computation
+    test-utils
+    gtest
+   )
+
+target_include_directories(${EXE_NAME} PRIVATE ${DEPENDENCIES})
+target_link_libraries(${EXE_NAME} PRIVATE ${DEPENDENCIES})
+link_directories(${Gtest_LIBRARY_DIRS})
+
+add_test(normal-computation ${EXE_NAME})
+install(TARGETS ${EXE_NAME} DESTINATION bin)

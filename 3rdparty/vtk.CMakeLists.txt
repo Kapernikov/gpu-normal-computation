@@ -1,0 +1,8 @@
+find_package(VTK REQUIRED)
+include(${VTK_USE_FILE})
+
+set(LIBRARY VTK)
+add_library(${LIBRARY} INTERFACE)
+target_include_directories(${LIBRARY} SYSTEM INTERFACE ${VTK_INCLUDE_DIRS})
+target_link_libraries(${LIBRARY} INTERFACE ${VTK_LIBRARIES})
+link_directories(${VTK_LIBRARY_DIRS})

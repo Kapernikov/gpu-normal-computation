@@ -1,0 +1,7 @@
+find_package(OpenCL REQUIRED)
+
+set(LIBRARY opencl)
+add_library(${LIBRARY} INTERFACE)
+target_include_directories(${LIBRARY} SYSTEM INTERFACE ${OpenCL_INCLUDE_DIRS})
+target_link_libraries(${LIBRARY} INTERFACE ${OpenCL_LIBRARIES})
+link_directories(${OpenCL_LIBRARY_DIRS})

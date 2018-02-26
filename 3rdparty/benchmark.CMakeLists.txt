@@ -1,0 +1,37 @@
+set(MODULE_NAME benchmark)
+set(PACKAGE_NAME Benchmark)
+
+find_package(${PACKAGE_NAME})
+option(USE_SYSTEM_BENCHMARK "Use the ${MODULE_NAME} library provided by the system" ${${PACKAGE_NAME}_FOUND})
+
+if(${USE_SYSTEM_BENCHMARK})
+    if(NOT ${${PACKAGE_NAME}_FOUND})
+        MESSAGE(FATAL_ERROR "Could NOT find ${MODULE_NAME}")
+    endif()
+else()
+    MESSAGE(STATUS " -> Using latest upstream version of ${PACKAGE_NAME} instead")
+
+    include(ExternalProject)
+
+    set(BENCHMARK_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/${MODULE_NAME})
+
+    ExternalProject_Add(Benchmark
+        PREFIX benchmark
+        GIT_REPOSITORY https://github.com/google/benchmark.git
+        CMAKE_ARGS -DBENCHMARK_ENABLE_GTEST_TESTS=OFF -DBENCHMARK_ENABLE_TESTING=OFF -DBENCHMARK_ENABLE_INSTALL=ON -DCMAKE_INSTALL_PREFIX=${BENCHMARK_INSTALL_DIR} -DCMAKE_BUILD_TYPE=Release
+        INSTALL_DIR ${BENCHMARK_INSTALL_DIR}
+        UPDATE_COMMAND ""
+        )
+
+    set(${PACKAGE_NAME}_INCLUDE_DIRS ${BENCHMARK_INSTALL_DIR}/include)
+    set(${PACKAGE_NAME}_LIBRARIES ${BENCHMARK_INSTALL_DIR}/lib/libbenchmark.a)
+    set(${PACKAGE_NAME}_LIBRARY_DIRS ${BENCHMARK_INSTALL_DIR}/lib)
+endif()
+
+add_library(benchmark INTERFACE)
+target_include_directories(benchmark SYSTEM INTERFACE ${${PACKAGE_NAME}_INCLUDE_DIRS})
+target_link_libraries(benchmark INTERFACE ${${PACKAGE_NAME}_LIBRARIES})
+
+if(NOT ${USE_SYSTEM_BENCHMARK})
+    add_dependencies(benchmark ${PACKAGE_NAME})
+endif()

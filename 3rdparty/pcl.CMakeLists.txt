@@ -1,0 +1,21 @@
+find_package(PCL 1.7 REQUIRED COMPONENTS common io segmentation visualization surface)
+
+set(LIBRARY pcl)
+add_library(${LIBRARY} INTERFACE)
+
+# For some reason, PCL puts multiple compiler arguments as a one item string. It is the first item in the list. We will handle it separately
+list(GET PCL_DEFINITIONS 0 UGLY_PCL_DEFINITIONS_HACK)
+
+# Convert the string to a proper list
+string(REPLACE " " ";" UGLY_DEFINITIONS_HACK_LIST ${UGLY_PCL_DEFINITIONS_HACK})
+target_compile_options(${LIBRARY} INTERFACE ${UGLY_DEFINITIONS_HACK_LIST})
+
+# Remove the weird item from the list
+list(REMOVE_AT PCL_DEFINITIONS 0)    
+target_compile_definitions(${LIBRARY} INTERFACE ${PCL_DEFINITIONS})
+
+target_include_directories(${LIBRARY} SYSTEM INTERFACE ${PCL_INCLUDE_DIRS})
+target_link_libraries(${LIBRARY} INTERFACE ${PCL_LIBRARIES})
+target_link_libraries(${LIBRARY} INTERFACE ${PCL_LIBRARIES} VTK)
+
+link_directories(${PCL_LIBRARY_DIRS})

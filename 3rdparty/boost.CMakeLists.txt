@@ -1,0 +1,13 @@
+find_package(Boost REQUIRED program_options)
+
+set(BOOST_LIBRARY boost)
+add_library(${BOOST_LIBRARY} INTERFACE)
+target_include_directories(${BOOST_LIBRARY} SYSTEM INTERFACE ${Boost_INCLUDE_DIRS})
+target_link_libraries(${BOOST_LIBRARY} INTERFACE ${Boost_LIBRARIES})
+link_directories(${Boost_LIBRARY_DIRS})
+
+# boost program-options
+set(BOOST_LIBRARY boost-program-options)
+add_library(${BOOST_LIBRARY} INTERFACE)
+target_include_directories(${BOOST_LIBRARY} SYSTEM INTERFACE ${Boost_INCLUDE_DIRS})
+target_link_libraries(${BOOST_LIBRARY} INTERFACE ${Boost_PROGRAM_OPTIONS_LIBRARY})

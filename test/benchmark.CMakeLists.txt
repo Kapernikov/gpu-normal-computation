@@ -1,0 +1,14 @@
+set(EXE_NAME benchmark_normal_computation)
+add_executable(${EXE_NAME}
+    benchmark_normal_computation.cpp
+)
+
+set(DEPENDENCIES
+    normal-computation
+    test-utils
+    benchmark
+   )
+
+target_include_directories(${EXE_NAME} PRIVATE ${DEPENDENCIES})
+target_link_libraries(${EXE_NAME} PRIVATE ${DEPENDENCIES})
+install(TARGETS ${EXE_NAME} DESTINATION bin)

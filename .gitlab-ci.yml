@@ -1,0 +1,46 @@
+image: ubuntu:artful
+variables:
+    INSTALL_DIR: install
+
+stages:
+    - build
+    - run
+
+.run_binary: &run_binary
+    stage: run
+    variables:
+        BINARY: "UNKNOWN"
+    dependencies:
+        - build
+    before_script:
+        - apt-get update
+        - apt-get install --assume-yes libpcl-dev libvtk6-dev libboost-dev ocl-icd-opencl-dev libpocl-dev   # Use *-dev versions of the required packaged so that we do not have to list the version explicitly
+    script:
+        - echo "Running binary = ${BINARY}"
+        - "${BINARY}"
+
+build:
+    stage: build
+    variables:
+        MODE: Release
+    before_script:
+        - apt-get update
+        - apt-get install --assume-yes git cmake g++ make libpcl-dev libvtk6-dev libboost-dev ocl-icd-opencl-dev
+    script:
+        - cmake -H. -Bbuild/${MODE} -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=${MODE}
+        - make -C build/${MODE} --jobs 4
+        - make -C build/${MODE} install
+    artifacts:
+        expire_in: 10 days
+        paths:
+            - ${INSTALL_DIR}/*
+
+test:
+    <<: *run_binary
+    variables:
+        BINARY: "${INSTALL_DIR}/bin/test_normal_computation"
+
+benchmark:
+    <<: *run_binary
+    variables:
+        BINARY: "${INSTALL_DIR}/bin/benchmark_normal_computation"

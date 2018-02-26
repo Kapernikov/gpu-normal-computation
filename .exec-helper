@@ -1,0 +1,146 @@
+commands:
+    setup: Setup the project infrastructure (compilation database etc.)
+    init: Initialize the project build dir
+    build: Build-only + install-only
+    build-only: Build compontents
+    install-only: Install the built components
+    run: Run a binary
+    clean: Clean the build directory
+    distclean: Distclean the build directory
+    cp-source: Copy the source to the container
+    start-container: Start the container
+    docker: Execute the command in Docker
+
+patterns:
+    TARGET:
+        default-values:
+            - test_normal_computation
+            - benchmark_normal_computation
+        short-option: t
+        long-option: target
+    MODE:
+        default-values:
+            - debug
+            - release
+        short-option: m
+        long-option: mode
+    CONTAINER:
+        default-values:
+            - normal-computation-opencl
+        short-option: d
+        long-option: docker
+    COMMAND:
+        default-values:
+            - init
+            - build
+            - run
+        short-option: c
+        long-option: cmd
+
+setup:
+    - command-line-command
+
+init:
+    - command-line-command
+
+cp-source:
+    - command-line-command
+
+build:
+    - build-only
+    - install-only
+
+build-only:
+    - make
+
+install-only:
+    - make
+
+clean:
+    - make
+
+distclean:
+    - command-line-command
+
+run:
+    - command-line-command
+
+start-container:
+    - command-line-command
+
+docker:
+    - cp-source
+    - command-line-command
+
+command-line-command:
+    patterns:
+        - EH_WORKING_DIR
+    working-dir: "{EH_WORKING_DIR}"
+
+    setup:
+        patterns:
+            - MODE
+            - EH_WORKING_DIR
+        command-line: [ ln, -fs, "build/{MODE}/build/compile_commands.json"]
+
+    init:
+        patterns:
+            - MODE
+            - EH_WORKING_DIR
+        command-line: [cmake, -H., "-Bbuild/{MODE}/build", "-DCMAKE_INSTALL_PREFIX=build/{MODE}/install", -DCMAKE_EXPORT_COMPILE_COMMANDS=ON, "-DCMAKE_BUILD_TYPE={MODE}" ]
+    distclean:
+        patterns:
+            - MODE
+            - EH_WORKING_DIR
+        command-line: [ rm, -rf, "build/{MODE}/build"]
+
+    run:
+        patterns:
+            - TARGET
+            - MODE
+            - EH_WORKING_DIR
+        working-dir: "{EH_WORKING_DIR}"
+        command-line: [nice, -n, -10, "build/{MODE}/install/bin/{TARGET}"]
+
+
+    cp-source:
+        patterns:
+            - CONTAINER
+            - EH_WORKING_DIR
+        command-line:
+            - create-source-dir: [ docker, exec, "{CONTAINER}", "mkdir -p {EH_WORKING_DIR}"]
+            - copy-sources: [docker, cp, ., "{CONTAINER}:{EH_WORKING_DIR}/"]
+
+    start-container:
+        patterns:
+            - CONTAINER
+        command-line: [ docker, start, "{CONTAINER}"]
+
+    docker:
+        patterns:
+            - CONTAINER
+            - COMMAND
+            - MODE
+            - TARGET
+            - EH_WORKING_DIR
+        command-line: [ docker, exec, "--workdir={EH_WORKING_DIR}", "{CONTAINER}", "exec-helper {COMMAND} --mode {MODE} --target {TARGET}"]
+
+make:
+    patterns:
+        - TARGET
+        - MODE
+        - EH_WORKING_DIR
+    working-dir: "{EH_WORKING_DIR}"
+    build-dir: build/{MODE}/build
+
+    build-only:
+        command-line:
+            - "{TARGET}"
+
+    clean:
+        command-line:
+            - clean
+
+    install-only:
+        command-line:
+            - install
